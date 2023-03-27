@@ -1,93 +1,171 @@
 import os
 import tkinter
 import ctypes
+import cv2
+import numpy
+from tkinter import END
 from tkinter.filedialog import askopenfile
 from PIL import ImageTk, Image
+from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
-def load_image(root, size, xd, yd):
+def load_image(size=350, xd=40, yd=40):
+    fileToRead = ['*.png','*.jpeg','*jpg']
 
-   fileToRead = ['*.png','*.jpeg','*jpg']
+    file = askopenfile(mode = 'r', filetypes = [('Image file', fileToRead)])
+    if file:
+        filepath = os.path.abspath(file.name)
+        
+        image1 = Image.open(filepath)
+        image1 = image1.resize((size, size))
+        image1 = ImageTk.PhotoImage(image1)
 
-   file = askopenfile(mode = 'r', filetypes = [('Image file', fileToRead)])
+        label1 = tkinter.Label(image=image1)
+        label1.image = image1
 
-   if file:
+        label1.place(x=xd, y=yd)
 
-      filepath = os.path.abspath(file.name)
-      # filename = os.path.basename(filepath).split('\\')[-1]
+        fullname   = os.path.basename(filepath).split("\\")[-1]
+        filename   = fullname.split(".")[0]
+        fileformat = fullname.split(".")[-1]
+        filesize   = os.stat(filepath).st_size
 
-      image1 = Image.open(filepath)
-      image1 = image1.resize((size, size))
+        in_filename.insert(0, filename)
+        in_filesize.insert(0, filesize)
+        in_format.insert(0, fileformat)
 
-      image1 = ImageTk.PhotoImage(image1)
-
-      label1 = tkinter.Label(image=image1)
-      label1.image = image1
-
-      label1.place(x=xd, y=yd)
-
-      printpath = tkinter.Label(root, text=filepath)
-      printpath.place(x=250, y=696)
-
-
-def load_model():
-
-   global model_filepath
-
-   fileToRead = ['*.jpeg']
-
-   file = askopenfile(mode = 'r', filetypes = [('Model file', fileToRead)])
-
-   if file:
-
-      filepath = os.path.abspath(file.name)
-
-      model_filepath = filepath
-
-
-def predict_image():
-
-   global model_filepath
-
-   print(model_filepath)
+        fig  = Figure(figsize = (2.5, 2.5), dpi = 100)
+        img  = cv2.imread(filepath)
+        vals = img.mean(axis=2).flatten()
+        a = fig.add_subplot(111)
+        a.hist(vals, 255)
+        canvas = FigureCanvasTkAgg(fig,  master = frame_histogram)  
+        canvas.draw()
+        canvas.get_tk_widget().place(x=20, y=20)
 
 root = tkinter.Tk()
 
-w = 1250
+w = 1220
 h = 830
 
 root.geometry(str(w) + 'x' + str(h))
-root.title('GUI Deteksi Keretakan Lapisan')
+root.title('GUI Deteksi Daging')
 root.option_add('*Font', 30)
 root.resizable(False, False)
 root.overrideredirect(False)
 
-entryFilepath = tkinter.Entry(root, width=70)
-entryFilepath.place(x=150, y=636)
+but_load_image = tkinter.Button(root, text = 'Load Image', width = 12, command = lambda : load_image())
+but_load_image.place(x = 40, y = 420)
 
-butLoadModel = tkinter.Button(root, text = 'Load Model', width = 15, command = lambda : function.load_model())
-butLoadModel.place(x = 60, y = 630)
+but_predict = tkinter.Button(root, text = 'Predict Image', width = 12)
+but_predict.place(x = 250, y = 420)
 
-butLoadImage = tkinter.Button(root, text = 'Load Image', width = 15, command = lambda : function.load_image(root, 450, 150, 100))
-butLoadImage.place(x = 60, y = 690)
+# TABLE FRAME
+frame_table = tkinter.Frame(root, bg="#5C6592", width=350, height=250)
+frame_table.place(x=820, y=540)
 
-butDetectImage = tkinter.Button(root, text = 'Detect', width = 15, command = lambda : function.predict_image())
-butDetectImage.place(x = 60, y = 750)
+# lst = [("","","",""),
+#        ("","","",""),
+#        ("","","",""),
+#        ("","","",""),
+#        ("","","",""),
+#        ("","","",""),
+#        ("","","",""),
+#        ("","","","")]
 
-sizeImg = 450
+# for i in range(8):
+#     for j in range(4):
+#         e = tkinter.Entry(frame_table, width=7, fg='blue', font=('Arial',12,'bold'))
+                 
+#         e.grid(row=i, column=j)
+#         e.insert(END, lst[i][j])
+
+
+# PARAMETER FRAME
+frame_parameter = tkinter.Frame(root, bg="#afa013", width=350, height=350)
+frame_parameter.place(x=430, y=40)
+
+text_red = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Red")
+text_red.place(x=10, y=10)
+
+text_green = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Green")
+text_green.place(x=10, y=60)
+
+text_blue = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Blue")
+text_blue.place(x=10, y=110)
+
+text_glcm = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="GLCM")
+text_glcm.place(x=10, y=160)
+
+text_hue = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Hue")
+text_hue.place(x=10, y=210)
+
+text_saturation = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Saturation")
+text_saturation.place(x=10, y=260)
+
+text_value = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Value")
+text_value.place(x=10, y=10)
+
+in_red = tkinter.Entry(frame_parameter, width=20)
+in_red.place(x=100, y=13)
+
+in_green = tkinter.Entry(frame_parameter, width=20)
+in_green.place(x=100, y=63)
+
+in_blue = tkinter.Entry(frame_parameter, width=20)
+in_blue.place(x=100, y=113)
+
+in_glcm = tkinter.Entry(frame_parameter, width=20)
+in_glcm.place(x=100, y=163)
+
+in_saturation = tkinter.Entry(frame_parameter, width=20)
+in_saturation.place(x=100, y=213)
+
+in_value = tkinter.Entry(frame_parameter, width=18)
+in_value.place(x=120, y=263)
+
+
+# HISTOGRAM FRAME
+frame_histogram = tkinter.Frame(root, bg="#afa013", width=350, height=350)
+frame_histogram.place(x=820, y=40)
+
+
+# INFORMATION FRAME
+frame_information = tkinter.Frame(root, bg="#afa013", width=350, height=170)
+frame_information.place(x=40, y=540)
+
+text_filename = tkinter.Label(frame_information, bg="#afa013", fg="#ffffff", text="filename")
+text_filename.place(x=10, y=10)
+
+text_filesize = tkinter.Label(frame_information, bg="#afa013", fg="#ffffff", text="filesize")
+text_filesize.place(x=10, y=60)
+
+text_format = tkinter.Label(frame_information, bg="#afa013", fg="#ffffff", text="format")
+text_format.place(x=10, y=110)
+
+in_filename = tkinter.Entry(frame_information, width=20)
+in_filename.place(x=100, y=13)
+
+in_filesize = tkinter.Entry(frame_information, width=20)
+in_filesize.place(x=100, y=63)
+
+in_format = tkinter.Entry(frame_information, width=20)
+in_format.place(x=100, y=113)
+
+
+# IMAGE
+sizeImg = 350
 image = Image.open('insertimg.png')
 image = image.resize((sizeImg, sizeImg))
 image = ImageTk.PhotoImage(image)
 
 image1 = tkinter.Label(image=image)
 image1.image = image
-image1.place(x=150, y=100)
+image1.place(x=40, y=40)
 
-# image right initiation and positioning
-image2 = tkinter.Label(image=image)
-image2.image = image
-image2.place(x=650, y=100)
 
 root.mainloop()
