@@ -3,6 +3,7 @@ import tkinter
 import ctypes
 import cv2
 import numpy
+import threading
 from tkinter import END
 from tkinter.filedialog import askopenfile
 from PIL import ImageTk, Image
@@ -12,8 +13,33 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
+filepath = ""
+
+def process_image():
+    global filepath
+    img = cv2.imread(filepath)
+
+    r = 0
+    g = 0
+    b = 0
+
+    for i in range(0, img.shape[0]):
+        for j in range(0, img.shape[1]):
+            if img[i][j][0] >= 125:
+                r += 1
+            if img[i][j][1] >= 125:
+                g += 1
+            if img[i][j][2] >= 125:
+                b += 1
+        
+    in_red.insert(0, r)
+    in_green.insert(0, g)
+    in_blue.insert(0, b)
+
 
 def load_image(size=350, xd=40, yd=40):
+    global filepath
+
     fileToRead = ['*.png','*.jpeg','*jpg']
 
     file = askopenfile(mode = 'r', filetypes = [('Image file', fileToRead)])
@@ -47,6 +73,10 @@ def load_image(size=350, xd=40, yd=40):
         canvas.draw()
         canvas.get_tk_widget().place(x=20, y=20)
 
+        # process_image(filepath)
+        threading.Thread(target=process_image).start()
+
+
 root = tkinter.Tk()
 
 w = 1220
@@ -68,21 +98,13 @@ but_predict.place(x = 250, y = 420)
 frame_table = tkinter.Frame(root, bg="#5C6592", width=350, height=250)
 frame_table.place(x=820, y=540)
 
-# lst = [("","","",""),
-#        ("","","",""),
-#        ("","","",""),
-#        ("","","",""),
-#        ("","","",""),
-#        ("","","",""),
-#        ("","","",""),
-#        ("","","","")]
+for i in [130, 164, 198, 232, 266, 300, 334]:
+    tkinter.Frame(frame_table, height=30, width=60, background='white').place(x=24, y=i)
+    tkinter.Frame(frame_table, height=30, width=(w - 350) / 2, background='white').place(x=88, y=i)
 
-# for i in range(8):
-#     for j in range(4):
-#         e = tkinter.Entry(frame_table, width=7, fg='blue', font=('Arial',12,'bold'))
-                 
-#         e.grid(row=i, column=j)
-#         e.insert(END, lst[i][j])
+for i in [130, 164, 198, 232, 266, 300, 334]:
+    tkinter.Frame(frame_table, height=30, width=60, background='white').place(x=454, y=i)
+    tkinter.Frame(frame_table, height=30, width=(w - 400) / 2, background='white').place(x=518, y=i)
 
 
 # PARAMETER FRAME
@@ -108,7 +130,7 @@ text_saturation = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", tex
 text_saturation.place(x=10, y=260)
 
 text_value = tkinter.Label(frame_parameter, bg="#afa013", fg="#ffffff", text="Value")
-text_value.place(x=10, y=10)
+text_value.place(x=10, y=310)
 
 in_red = tkinter.Entry(frame_parameter, width=20)
 in_red.place(x=100, y=13)
@@ -122,11 +144,16 @@ in_blue.place(x=100, y=113)
 in_glcm = tkinter.Entry(frame_parameter, width=20)
 in_glcm.place(x=100, y=163)
 
-in_saturation = tkinter.Entry(frame_parameter, width=20)
-in_saturation.place(x=100, y=213)
+in_hue = tkinter.Entry(frame_parameter, width=20)
+in_hue.place(x=100, y=213)
+
+in_saturation = tkinter.Entry(frame_parameter, width=18)
+in_saturation.place(x=120, y=263)
 
 in_value = tkinter.Entry(frame_parameter, width=18)
-in_value.place(x=120, y=263)
+in_value.place(x=120, y=313)
+
+
 
 
 # HISTOGRAM FRAME
