@@ -2,7 +2,11 @@ __pycache__
 .venv
 .vscode
 
+functions/__pycache__
+
+result.xlsx
 test0.py
 test1.py
 test2.py
 test3.py
+test4.py
