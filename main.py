@@ -4,7 +4,7 @@ import tkinter
 import ctypes
 import cv2
 import threading
-from tkinter import END
+from tkinter import END, BOTH
 from openpyxl import Workbook
 from dotenv import load_dotenv
 from PIL import ImageTk, Image
@@ -105,14 +105,24 @@ def load_image(size=350, xd=40, yd=40):
         in_filesize.insert(2, filesize)
         in_format.insert(2, fileformat)
 
-        fig  = Figure(figsize=(HISTOGRAM_SIZE, HISTOGRAM_SIZE), dpi=100)
+        # fig  = Figure(figsize=(HISTOGRAM_SIZE, HISTOGRAM_SIZE), dpi=100)
+        # img  = cv2.imread(filepath)
+        # vals = img.mean(axis=2).flatten()
+        # a = fig.add_subplot(111)
+        # a.hist(vals, 255)
+        # canvas = FigureCanvasTkAgg(fig,  master=frame_histogram)  
+        # canvas.draw()
+        # canvas.get_tk_widget().pack(fill=BOTH, expand=True)
+
         img  = cv2.imread(filepath)
         vals = img.mean(axis=2).flatten()
-        a = fig.add_subplot(111)
-        a.hist(vals, 255)
-        canvas = FigureCanvasTkAgg(fig,  master = frame_histogram)  
+
+        fig = Figure(figsize=(HISTOGRAM_SIZE, HISTOGRAM_SIZE), dpi=100)
+        fig.add_subplot(222).hist(vals, 255)
+        
+        canvas = FigureCanvasTkAgg(fig,  master=frame_histogram)  
         canvas.draw()
-        canvas.get_tk_widget().place(x=20, y=20)
+        canvas.get_tk_widget().pack(fill=BOTH)
 
         threading.Thread(target=process_image).start()
 
