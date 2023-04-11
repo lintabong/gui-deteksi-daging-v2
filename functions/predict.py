@@ -1,9 +1,15 @@
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import  train_test_split
 import os
 import cv2
-import numpy as np
+import pywt
+from sklearn.neighbors import KNeighborsClassifier
+
+def extract_wavelet(filepath):
+    img     = cv2.imread(filepath)
+    coeffs2 = pywt.dwt2(img, "haar")
+    
+    LL, (LH, HL, HH) = coeffs2
+
+    return LL.mean(), HL.mean()
 
 
 def getListOfFiles(dirName:str) -> list:
@@ -18,38 +24,37 @@ def getListOfFiles(dirName:str) -> list:
 
     return allFiles
 
-
 def run(imgpath):
     imagePaths = getListOfFiles("./datasets/")
-    data   = []
-    lables = []
+    x = []
+    y = []
+    classes = []
 
-    label = ["Daging Babi", "Daging Kambing", "Daging Kerbau", "Daging Kuda", "Daging Sapi"]
+    label = os.listdir("./datasets/")
 
     for image in imagePaths:
+        label_target = [os.path.split(os.path.split(image)[0])[1]]
+        LL, HL = extract_wavelet(image)
 
-        lable = os.path.split(os.path.split(image)[0])[1]
-        lables.append(lable)
-
-        img = cv2.imread(image)
-        img = cv2.resize(img, (32, 32), interpolation = cv2.INTER_AREA)
-        data.append(img)
+        x.append(LL)
+        y.append(HL)
         
-    data = np.array(data)
-    lables = np.array(lables)
+        res = [label.index(i) for i in label_target]
+        classes.append(res)
 
-    le = LabelEncoder()
-    lables = le.fit_transform(lables)
+    data = list(zip(x, y))
+    knn = KNeighborsClassifier(n_neighbors=4)
 
-    dataset_size = data.shape[0]
-    data = data.reshape(dataset_size,-1)
+    knn.fit(data, classes)
 
-    (trainX, testX, trainY, testY ) = train_test_split(data, lables, test_size= 0.25, random_state=42)
+    imgtest = extract_wavelet(imgpath)
 
-    model = KNeighborsClassifier(n_neighbors=3, n_jobs=-1)
-    model.fit(trainX, trainY)
+    predict_true = 0
+    for i, _ in enumerate(classes):
+        result = knn.predict([(x[i], y[i])])
+        if result == classes[i]:
+            predict_true += 1
 
-    imgtest = cv2.imread(imgpath)
-    imgtest = cv2.resize(img, (32, 32), interpolation = cv2.INTER_AREA).reshape(1, -1)
-    
-    return label[model.predict(imgtest)[0]]
+    accuracy = (predict_true/(len(classes)))*100
+
+    return label[knn.predict([imgtest])[0]], accuracy

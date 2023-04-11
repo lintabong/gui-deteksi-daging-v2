@@ -4,7 +4,7 @@ import tkinter
 import ctypes
 import cv2
 import threading
-from tkinter import END, BOTH
+from tkinter import END
 from openpyxl import Workbook
 from dotenv import load_dotenv
 from PIL import ImageTk, Image
@@ -46,11 +46,11 @@ cursor     = 0
 def process_image():
     global filepath
 
-    r, g, b    = color.run(filepath)
-    gray_level = glcm.run(filepath)
-    hue, sat   = saturation.run(filepath)
-    result     = predict.run(filepath)
-    ori, mod   = wvhar.run(filepath)
+    r, g, b          = color.run(filepath)
+    gray_level       = glcm.run(filepath)
+    hue, sat         = saturation.run(filepath)
+    result, accuracy = predict.run(filepath)
+    ori, mod         = wvhar.run(filepath)
 
     in_red.insert(2, r)
     in_green.insert(2, g)
@@ -59,6 +59,7 @@ def process_image():
     in_hue.insert(2, hue)
     in_saturation.insert(2, sat)
     in_result.insert(2, result)
+    in_accuracy.insert(2, str(round(accuracy, 3))+" %")
     in_value.insert(2, ori)
 
 
@@ -80,6 +81,7 @@ def load_image(size=350, xd=40, yd=40):
     in_saturation.delete(0, END)
     in_value.delete(0, END)
     in_result.delete(0, END)
+    in_accuracy.delete(0, END)
     in_filename.delete(0, END)
     in_filesize.delete(0, END)
     in_format.delete(0, END)
@@ -105,15 +107,6 @@ def load_image(size=350, xd=40, yd=40):
         in_filesize.insert(2, filesize)
         in_format.insert(2, fileformat)
 
-        # fig  = Figure(figsize=(HISTOGRAM_SIZE, HISTOGRAM_SIZE), dpi=100)
-        # img  = cv2.imread(filepath)
-        # vals = img.mean(axis=2).flatten()
-        # a = fig.add_subplot(111)
-        # a.hist(vals, 255)
-        # canvas = FigureCanvasTkAgg(fig,  master=frame_histogram)  
-        # canvas.draw()
-        # canvas.get_tk_widget().pack(fill=BOTH, expand=True)
-
         img  = cv2.imread(filepath)
         vals = img.mean(axis=2).flatten()
 
@@ -122,7 +115,7 @@ def load_image(size=350, xd=40, yd=40):
         
         canvas = FigureCanvasTkAgg(fig,  master=frame_histogram)  
         canvas.draw()
-        canvas.get_tk_widget().pack(fill=BOTH)
+        canvas.get_tk_widget().place(x=20, y=20)
 
         threading.Thread(target=process_image).start()
 
@@ -202,10 +195,16 @@ frame_result = tkinter.Frame(root, bg=ORANGE, width=740, height=120)
 frame_result.place(x=430, y=410)
 
 text_result = tkinter.Label(frame_result, bg=ORANGE, fg=WHITE, text="Result")
-text_result.place(x=10, y=43)
+text_result.place(x=10, y=20)
+
+text_accuracy = tkinter.Label(frame_result, bg=ORANGE, fg=WHITE, text="Accuracy")
+text_accuracy.place(x=10, y=70)
 
 in_result = tkinter.Entry(frame_result, width=20)
-in_result.place(x=100, y=43)
+in_result.place(x=100, y=20)
+
+in_accuracy = tkinter.Entry(frame_result, width=20)
+in_accuracy.place(x=100, y=70)
 
 # TABLE FRAME
 frame_table = tkinter.Frame(root, bg=BLUE, width=740, height=250)
